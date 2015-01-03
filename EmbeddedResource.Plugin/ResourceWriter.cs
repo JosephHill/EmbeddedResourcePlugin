@@ -22,19 +22,38 @@ namespace EmbeddedResource.Plugin
 		/// <summary>
 		/// Writes all of the embedded resources in a project folder to the target directory
 		/// </summary>
-		/// <param name="sourceDirectory">Path to locate embedded resources in assembly.</param>
+		/// <param name="sourceDirectory">Path to embedded resources in assembly.</param>
+		/// <param name="targetDirectory">Path to folder where resources will be written.</param>
 		/// <param name="recursive">Descend into subdirectories to retrieve resources.  
 		/// Recursive writes will treat "." as path delimiters (excluding a final "." for the file extension). 
 		/// Non-recursive treats all "." as part of the file name.</param>
 		/// <returns>
 		/// A <see cref="Task"/> which will complete after the folder is written
 		/// </returns>
-		public async Task WriteFolder (string sourceDirectory, string targetDirectory = "", bool recursive = true) {
+		public async Task WriteFolder (string sourceDirectory, string targetDirectory = "", bool recursive = true, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			await WriteFolder (
 				this.Assembly, 
 				sourceDirectory, 
 				targetDirectory, 
-				recursive);
+				recursive,
+				option);
+		}
+
+		/// <summary>
+		/// Writes an embedded resource to the file system 
+		/// </summary>
+		/// <param name="assembly"><see cref="Assembly"/> containing embedded resources.</param>
+		/// <param name="source">Relative path to embedded resource in <see cref="Assembly"/>.</param>
+		/// <param name="targetDirectory">Path to folder where resources will be written.</param>
+		/// <returns>
+		/// A <see cref="Task"/> which will complete after the file is written
+		/// </returns>
+		public async Task WriteFile (string source, string targetDirectory = "", CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
+			await WriteFile (
+				this.Assembly, 
+				source, 
+				targetDirectory,
+				option);
 		}
 
 		/// <summary>
@@ -45,11 +64,12 @@ namespace EmbeddedResource.Plugin
 		/// <returns>
 		/// A <see cref="Task"/> which will complete after the file is written
 		/// </returns>
-		public async Task WriteResource (string fileName, string resource) {
+		public async Task WriteResource (string fileName, string resource, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			await WriteResource (
 				this.Assembly,
 				fileName, 
-				resource);
+				resource,
+				option);
 		}
 
 
@@ -57,14 +77,15 @@ namespace EmbeddedResource.Plugin
 		/// Writes all of the embedded resources in a project folder to the target directory
 		/// </summary>
 		/// <param name="assembly"><see cref="Assembly"/> containing embedded resources.</param>
-		/// <param name="sourceDirectory">Path to locate embedded resources in assembly.</param>
+		/// <param name="sourceDirectory">Path to embedded resources in assembly.</param>
+		/// <param name="targetDirectory">Path to folder where resources will be written.</param>
 		/// <param name="recursive">Descend into subdirectories to retrieve resources.  
 		/// Recursive writes will treat "." as path delimiters (excluding a final "." for the file extension). 
 		/// Non-recursive treats all "." as part of the file name.</param>
 		/// <returns>
 		/// A <see cref="Task"/> which will complete after the folder is written
 		/// </returns>
-		public static async Task WriteFolder (Assembly assembly, string sourceDirectory, string targetDirectory = "", bool recursive = true) {
+		public static async Task WriteFolder (Assembly assembly, string sourceDirectory, string targetDirectory = "", bool recursive = true, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			var sourcePrefix = String.Format ("{0}.{1}.",
 				assembly.GetName ().Name,
 				sourceDirectory.Replace (PortablePath.DirectorySeparatorChar, '.'));
@@ -94,8 +115,33 @@ namespace EmbeddedResource.Plugin
 				await WriteResource (
 					assembly,
 					PortablePath.Combine (targetDirectory, relativePathAndFilename), 
-					resource);
+					resource,
+					option);
 			}
+		}
+
+		/// <summary>
+		/// Writes an embedded resource to the file system 
+		/// </summary>
+		/// <param name="assembly"><see cref="Assembly"/> containing embedded resources.</param>
+		/// <param name="source">Relative path to embedded resource in <see cref="Assembly"/>.</param>
+		/// <param name="targetDirectory">Path to folder where resources will be written.</param>
+		/// <returns>
+		/// A <see cref="Task"/> which will complete after the file is written
+		/// </returns>
+		public static async Task WriteFile (Assembly assembly, string source, string targetDirectory = "", CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
+			var resource = String.Format ("{0}.{1}",
+				assembly.GetName ().Name,
+				source.Replace (PortablePath.DirectorySeparatorChar, '.'));
+
+			var fileName = source.Substring (
+				source.LastIndexOf (PortablePath.DirectorySeparatorChar) + 1);
+				
+			await WriteResource (
+				assembly,
+				PortablePath.Combine(targetDirectory, fileName),
+				resource, 
+				option);
 		}
 
 		/// <summary>
@@ -107,11 +153,8 @@ namespace EmbeddedResource.Plugin
 		/// <returns>
 		/// A <see cref="Task"/> which will complete after the file is written
 		/// </returns>
-		public static async Task WriteResource (Assembly assembly, string fileName, string resource) {
+		public static async Task WriteResource (Assembly assembly, string fileName, string resource, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			var rootFolder = FileSystem.Current.LocalStorage;
-
-			//			if (await rootFolder.CheckExistsAsync(fileName) == ExistenceCheckResult.FileExists)
-			//				return;
 
 			var folderName = fileName.Substring (
 				0, 
@@ -123,7 +166,7 @@ namespace EmbeddedResource.Plugin
 
 			var file = await folder.CreateFileAsync(
 				fileName.Substring(fileName.LastIndexOf (PortablePath.DirectorySeparatorChar) + 1),
-				CreationCollisionOption.ReplaceExisting);
+				option);
 
 			using (var input = ResourceLoader.GetEmbeddedResourceStream(assembly, resource))
 			using (var output = await file.OpenAsync(FileAccess.ReadAndWrite)) {
