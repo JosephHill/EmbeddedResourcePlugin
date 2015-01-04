@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using PCLStorage;
 
-namespace EmbeddedResource.Plugin
+namespace Plugin.EmbeddedResource
 {
 	public class ResourceWriter
 	{

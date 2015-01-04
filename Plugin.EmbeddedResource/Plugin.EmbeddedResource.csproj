@@ -8,8 +8,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{AC1ABE2A-1B90-49C1-A723-742AE6BE4D4E}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>EmbeddedResource.Plugin</RootNamespace>
-    <AssemblyName>EmbeddedResource.Plugin</AssemblyName>
+    <RootNamespace>Plugin.EmbeddedResource</RootNamespace>
+    <AssemblyName>Plugin.EmbeddedResource</AssemblyName>
     <TargetFrameworkProfile>Profile78</TargetFrameworkProfile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
