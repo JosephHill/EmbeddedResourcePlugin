@@ -57,4 +57,8 @@ namespace Sample
 }
 ```
 
+Notes on usage
+==============
+When a file is embedded as a resource, it becomes impossible to differentiate a path delimiter "." from a file extension ".".  For example, www/images/big.button.png looks just like www/images/big/button.png.  For this reason, `WriteFolder` always treats the final "." in a resource name as the file extension delimiter by default.  Calling `WriteFolder` with `recursive = false` will do a non-recursive copy of all resources in the specified source path (i.e., all instances of "." will be treated as part of the filename for every file in the specified folder).
+
 Because some platforms^H supported by PCL Storage provide only asynchronous file access, the `ResourceWriter.WriteFile` and `ResourceWriter.WriteFolder` APIs are also asynchronous.  Anything you want to do in your app that depends on these resources having been written to disk (such as showing the data from the database) will need to await the completion of these calls.
