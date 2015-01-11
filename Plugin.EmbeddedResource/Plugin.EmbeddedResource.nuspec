@@ -2,12 +2,13 @@
 <package >
   <metadata>
     <id>Xam.Plugin.EmbeddedResource</id>
-    <version>1.0.0.0</version>
+    <version>1.0.1.0</version>
     <title>EmbeddedResource Plugin for Xamarin and Windows</title>
     <authors>Joseph Hill</authors>
     <owners>Joseph Hill</owners>
     <licenseUrl>https://github.com/JosephHill/EmbeddedResourcePlugin/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/JosephHill/EmbeddedResourcePlugin</projectUrl>
+    <iconUrl>https://files.xamarin.com/~joseph/EmbeddedResource_128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       A cross-platform convenience library for unpacking embedded resources.
@@ -17,7 +18,7 @@
 
       The EmbeddedResource Plugin for Xamarin and Windows is a Portable Class Library (PCL) that provides a cross-platform API to read files embedded in a .NET assembly and write these files to disk via [PCL Storage](https://pclstorage.codeplex.com/).
     </summary>
-    <releaseNotes>Initial release.</releaseNotes>
+    <releaseNotes>Fix path handling on Windows Phone</releaseNotes>
     <copyright>Copyright 2015, Xamarin Inc.</copyright>
     <tags>xamarin, pcl, xam.pcl, windows phone, winphone, wp8, winrt, android, xamarin.forms, ios</tags>
     <dependencies>
