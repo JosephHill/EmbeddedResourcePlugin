@@ -88,7 +88,7 @@ namespace Plugin.EmbeddedResource
 		public static async Task WriteFolder (Assembly assembly, string sourceDirectory, string targetDirectory = "", bool recursive = true, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			var sourcePrefix = String.Format ("{0}.{1}.",
 				assembly.GetName ().Name,
-				sourceDirectory.Replace (PortablePath.DirectorySeparatorChar, '.'));
+				ConvertPathToResourceName (sourceDirectory));
 
 			foreach (var resource in assembly.GetManifestResourceNames()
 				.Where(a => a.StartsWith(sourcePrefix))
@@ -132,10 +132,13 @@ namespace Plugin.EmbeddedResource
 		public static async Task WriteFile (Assembly assembly, string source, string targetDirectory = "", CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
 			var resource = String.Format ("{0}.{1}",
 				assembly.GetName ().Name,
-				source.Replace (PortablePath.DirectorySeparatorChar, '.'));
+				ConvertPathToResourceName (source));
 
+			// handle either slash as path delimiter
+			source = source.Replace("\\", "/");
+			
 			var fileName = source.Substring (
-				source.LastIndexOf (PortablePath.DirectorySeparatorChar) + 1);
+				source.LastIndexOf ("/") + 1);
 				
 			await WriteResource (
 				assembly,
@@ -154,16 +157,21 @@ namespace Plugin.EmbeddedResource
 		/// A <see cref="Task"/> which will complete after the file is written
 		/// </returns>
 		public static async Task WriteResource (Assembly assembly, string fileName, string resource, CreationCollisionOption option =  CreationCollisionOption.ReplaceExisting) {
-			var rootFolder = FileSystem.Current.LocalStorage;
-
 			var folderName = fileName.Substring (
 				0, 
 				fileName.LastIndexOf (PortablePath.DirectorySeparatorChar));
 
-			var folder = await rootFolder.CreateFolderAsync(
-				folderName,
-				CreationCollisionOption.OpenIfExists);
+			var folder = GetStorageFromPath (folderName);
 
+			if (folder == null)
+				folder = FileSystem.Current.LocalStorage;
+			else
+			if (folderName != folder.Path)
+				// need to create subfolder
+				folder = await folder.CreateFolderAsync (
+					folderName.Substring (folder.Path.Length + 1),
+					CreationCollisionOption.OpenIfExists);
+                
 			var file = await folder.CreateFileAsync(
 				fileName.Substring(fileName.LastIndexOf (PortablePath.DirectorySeparatorChar) + 1),
 				option);
@@ -176,6 +184,34 @@ namespace Plugin.EmbeddedResource
 					output.Write (buffer, 0, length);
 				output.Flush ();
 			}
+		}
+
+		/// <summary>
+		/// Converts file system style path to resource name
+		/// </summary>
+		/// <param name="path">Path to be parsed.</param>
+		/// <returns>
+		/// Resource name with path delimiters replaced with "."
+		/// </returns>
+		private static string ConvertPathToResourceName (string path) {
+			return path.Replace ('/','.').Replace ('\\','.');
+		}
+
+		/// <summary>
+		/// Determines which storage in FileSystem.Current that is represented by the path
+		/// </summary>
+		/// <param name="path">Path to be parsed.</param>
+		/// <returns>
+		/// IFolder that contains path.  Returns null if there is no matching storage
+		/// </returns>
+		private static IFolder GetStorageFromPath (string path) {
+			if (path.StartsWith (FileSystem.Current.LocalStorage.Path)) 
+			    return FileSystem.Current.LocalStorage;
+
+			if (path.StartsWith (FileSystem.Current.RoamingStorage.Path))
+				return FileSystem.Current.RoamingStorage;
+			
+			return null;
 		}
 	}
 }
